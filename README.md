@@ -1,4 +1,5 @@
 # T265 On Orange Pi ROS Noetic
+If you need to use this project, you need to download the release into the project folder and rename the folder to 'bundle'. This folder contains four parts, which the automation script will handle automatically. You only need to unzip the zip files; there is no need to extract the tar parts. This file already includes all the offline dependencies required for compilation.
 
 Offline-friendly Intel T265 setup for Orange Pi arm64 on Ubuntu 20.04 / ROS Noetic / Python 3.8.
 
