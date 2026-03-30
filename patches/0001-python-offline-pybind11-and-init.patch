@@ -1,0 +1,56 @@
+diff --git a/wrappers/python/CMakeLists.txt b/wrappers/python/CMakeLists.txt
+--- a/wrappers/python/CMakeLists.txt
++++ b/wrappers/python/CMakeLists.txt
+@@
+-set(DEPENDENCIES realsense2)
+-# In order for the external project clone to occur during cmake configure step(rather than during compilation, as would normally happen),
+-# we copy the external project declaration to the build folder and then execute it
+-configure_file(${CMAKE_SOURCE_DIR}/third-party/pybind11/CMakeLists.txt ${CMAKE_BINARY_DIR}/external-projects/pybind11/CMakeLists.txt)
+-execute_process(COMMAND "${CMAKE_COMMAND}" -G "${CMAKE_GENERATOR}" .
+-    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/external-projects/pybind11"
+-)
+-execute_process(COMMAND "${CMAKE_COMMAND}" --build .
+-    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/external-projects/pybind11"
+-)
+-
+-# Add pybind11 makefile
+-add_subdirectory("${CMAKE_BINARY_DIR}/third-party/pybind11"
+-                 "${CMAKE_BINARY_DIR}/third-party/pybind11"
+-                 EXCLUDE_FROM_ALL
+-)
++set(DEPENDENCIES realsense2)
++set(PYBIND11_SOURCE_DIR "${CMAKE_SOURCE_DIR}/third-party/pybind11-src")
++if(EXISTS "${PYBIND11_SOURCE_DIR}/include/pybind11/pybind11.h")
++    message(STATUS "Using bundled pybind11 source from ${PYBIND11_SOURCE_DIR}")
++    add_subdirectory("${PYBIND11_SOURCE_DIR}"
++                     "${CMAKE_BINARY_DIR}/third-party/pybind11"
++                     EXCLUDE_FROM_ALL
++    )
++    set(PYBIND11_INCLUDE_DIR "${PYBIND11_SOURCE_DIR}/include")
++else()
++    configure_file(${CMAKE_SOURCE_DIR}/third-party/pybind11/CMakeLists.txt ${CMAKE_BINARY_DIR}/external-projects/pybind11/CMakeLists.txt)
++    execute_process(COMMAND "${CMAKE_COMMAND}" -G "${CMAKE_GENERATOR}" .
++        WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/external-projects/pybind11"
++    )
++    execute_process(COMMAND "${CMAKE_COMMAND}" --build .
++        WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/external-projects/pybind11"
++    )
++    add_subdirectory("${CMAKE_BINARY_DIR}/third-party/pybind11"
++                     "${CMAKE_BINARY_DIR}/third-party/pybind11"
++                     EXCLUDE_FROM_ALL
++    )
++    set(PYBIND11_INCLUDE_DIR "${CMAKE_BINARY_DIR}/third-party/pybind11/include")
++endif()
+@@
+-include_directories(${CMAKE_BINARY_DIR}/third-party/pybind11/include)
++include_directories(${PYBIND11_INCLUDE_DIR})
+@@
+ install(TARGETS pybackend2 pyrealsense2
+     EXPORT pyrealsense2Targets
+     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+     LIBRARY DESTINATION ${PYTHON_INSTALL_DIR}
+     ARCHIVE DESTINATION ${PYTHON_INSTALL_DIR}
+ )
++install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/pyrealsense2/__init__.py"
++    DESTINATION ${PYTHON_INSTALL_DIR}
++)

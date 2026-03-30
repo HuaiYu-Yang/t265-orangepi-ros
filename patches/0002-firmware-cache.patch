@@ -1,0 +1,32 @@
+diff --git a/common/fw/CMakeLists.txt b/common/fw/CMakeLists.txt
+--- a/common/fw/CMakeLists.txt
++++ b/common/fw/CMakeLists.txt
+@@
+ set(REALSENSE_FIRMWARE_URL "https://librealsense.intel.com" CACHE STRING
+     "URL to download firmware binaries from")
++set(REALSENSE_FIRMWARE_CACHE_DIR "${CMAKE_SOURCE_DIR}/third-party/fw-cache" CACHE PATH
++    "Local directory containing pre-downloaded firmware binaries")
+@@
+ function(target_binary url version sha1 symbol ext)
+   set(binary "${CMAKE_CURRENT_BINARY_DIR}/${symbol}-${version}${ext}")
++  set(cached_binary "${REALSENSE_FIRMWARE_CACHE_DIR}/${symbol}-${version}${ext}")
++  if(EXISTS "${cached_binary}")
++    file(SHA1 "${cached_binary}" cached_sha1)
++    if(NOT "${cached_sha1}" STREQUAL "${sha1}")
++      message(FATAL_ERROR "Cached firmware hash mismatch for ${cached_binary}: expected ${sha1}, got ${cached_sha1}")
++    endif()
++    file(COPY "${cached_binary}" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
++    message(STATUS "Using cached firmware ${cached_binary}")
++  else()
+   message(STATUS "${url}/${symbol}-${version}${ext}")
+   file(DOWNLOAD "${url}/${symbol}-${version}${ext}" "${binary}"
+        EXPECTED_HASH SHA1=${sha1}
+        STATUS status)
+@@
+   if (NOT ${error_code} EQUAL 0)
+     message(FATAL_ERROR "Download firmwnare (${status}) - ${url}")
+   else()
+     message(STATUS "Download firmware ${status} for ${symbol}-${version}${ext}")
+   endif()
++  endif()
+   string(TOUPPER ${symbol} SYMBOL)
