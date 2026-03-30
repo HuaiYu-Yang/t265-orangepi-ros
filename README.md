@@ -63,7 +63,7 @@ From the repository root:
 
 ```powershell
 python .\scripts\deploy_orangepi_from_windows.py `
-  --host 10.48.200.94 `
+  --host 192.168.xxx.xxx `
   --user orangepi `
   --password orangepi
 ```
